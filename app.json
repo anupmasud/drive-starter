@@ -1,13 +1,14 @@
 {
   "expo": {
-    "name": "drive-starter",
+    "name": "Drive Starter",
     "slug": "drive-starter",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.drivestarter"
     },
     "android": {
       "adaptiveIcon": {
@@ -15,10 +16,22 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "package": "com.example.drivestarter"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-dev-client",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.REPLACE-WITH-YOUR-IOS-CLIENT-ID"
+        }
+      ]
+    ],
+    "scheme": "drivestarter",
+    "backgroundColor": "#FBF7F0"
   }
 }
