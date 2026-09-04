@@ -14,8 +14,8 @@ export const CONFIG = {
                       signature at runtime.
 
      The README walks through creating them.                                */
-  iosClientId: "",
-  webClientId: "",
+  iosClientId: "432206356046-0ujmkctdc5rb3hobfp0chjvt5kgt4849.apps.googleusercontent.com",
+  webClientId: "432206356046-umf1ranbpqnttj4beulm9q79a1g6b5gf.apps.googleusercontent.com",
 
   /* ---- What the app may touch on Drive -----------------------------------
      drive.file is deliberately the narrowest useful scope: the app can only

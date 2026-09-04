@@ -8,7 +8,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.example.drivestarter"
+      "bundleIdentifier": "com.anupmasud.drivestarter"
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +17,7 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "com.example.drivestarter"
+      "package": "com.anupmasud.drivestarter"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -27,7 +27,7 @@
       [
         "@react-native-google-signin/google-signin",
         {
-          "iosUrlScheme": "com.googleusercontent.apps.REPLACE-WITH-YOUR-IOS-CLIENT-ID"
+          "iosUrlScheme": "com.googleusercontent.apps.432206356046-0ujmkctdc5rb3hobfp0chjvt5kgt4849"
         }
       ]
     ],
