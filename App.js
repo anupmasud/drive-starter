@@ -108,6 +108,30 @@ export default function App() {
     );
   }
 
+  /* ---------------------------------------------------------------- loading */
+  /* Without this, "loading" and "error" fell through to the main screen with
+     no document to draw — which renders as a blank white page and looks like
+     a crash. Every status now has somewhere to land. */
+  if (!doc) {
+    return (
+      <Shell>
+        <Text style={s.h1}>{status === "error" ? "Couldn’t load" : "Loading…"}</Text>
+        {status === "error" ? (
+          <>
+            <Text style={s.body}>
+              Signed in as {user?.email || "—"}, but the file in Drive couldn’t be read.
+            </Text>
+            {!!error && <Text style={s.error}>{error}</Text>}
+            <Button label="Try again" onPress={syncNow} primary />
+            <Button label="Sign out" onPress={signOut} />
+          </>
+        ) : (
+          <ActivityIndicator style={{ marginTop: 8 }} />
+        )}
+      </Shell>
+    );
+  }
+
   /* ------------------------------------------------------------------ ready */
   const items = doc?.items || [];
 
