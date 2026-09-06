@@ -26,11 +26,23 @@ export const CONFIG = {
      genuinely need to open files the user picked.                           */
   scopes: ["https://www.googleapis.com/auth/drive.file"],
 
-  /* ---- The document ------------------------------------------------------
+  /* ---- Where the data lives ----------------------------------------------
      One JSON file per user, in their own Drive. Because each person signs in
      as themselves and the file is created under their account, isolation is
      automatic: there is no shared database that could leak between users, and
-     no server of yours holding anyone's data.                               */
+     no server of yours holding anyone's data.
+
+     folderPath nests the file rather than dropping it in the root of My Drive.
+     ["Apps", "Drive Starter"] means My Drive → Apps → Drive Starter.
+
+     A consequence of the drive.file scope is worth understanding: the app can
+     only see files and folders it created, so it cannot show you a picker of
+     folders you already have. It creates these instead. Once created you are
+     free to rename the folder or drag it anywhere in your Drive — we remember
+     it by id, not by path, so moving it does not break anything.
+
+     Set folderPath to [] to keep the file at the top of My Drive.           */
+  folderPath: ["Apps", "Drive Starter"],
   fileName: "drive-starter-data.json",
 
   /* The shape a brand-new user starts with. Replace with your app's data. */

@@ -20,7 +20,15 @@
       "package": "com.anupmasud.drivestarter"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "Drive Starter",
+      "shortName": "Drive Starter",
+      "themeColor": "#FBF7F0",
+      "backgroundColor": "#FBF7F0",
+      "display": "standalone",
+      "description": "Your data, in a folder of your own Google Drive."
     },
     "plugins": [
       "expo-dev-client",

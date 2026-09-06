@@ -23,13 +23,14 @@ const STATUS_TEXT = {
   ready: "Saved to your Drive",
   offline: "Offline — will retry",
   conflict: "Changed somewhere else",
+  expired: "Tap to reconnect",
   error: "Something went wrong",
 };
 
 export default function App() {
   const {
     user, doc, status, error, conflict, configured,
-    update, syncNow, resolveConflict, signIn, signOut, disconnect, fileUrl,
+    update, syncNow, resolveConflict, signIn, signOut, disconnect, fileUrl, folderUrl,
   } = useCloudDoc();
 
   const [draft, setDraft] = useState("");
@@ -54,8 +55,10 @@ export default function App() {
       <Shell>
         <Text style={s.h1}>Drive Starter</Text>
         <Text style={s.body}>
-          Sign in with Google. Your data is kept as a single file in your own
-          Drive — this app can only see files it created there, nothing else.
+          Sign in with Google. Your data is kept as a single file in
+          {" "}{CONFIG.folderPath.length ? CONFIG.folderPath.join(" / ") : "My Drive"}
+          {" "}on your own Drive — this app can only see files it created there,
+          nothing else.
         </Text>
         {status === "starting" ? (
           <ActivityIndicator style={{ marginTop: 24 }} />
@@ -115,14 +118,16 @@ export default function App() {
   if (!doc) {
     return (
       <Shell>
-        <Text style={s.h1}>{status === "error" ? "Couldn’t load" : "Loading…"}</Text>
-        {status === "error" ? (
+        <Text style={s.h1}>
+          {status === "expired" ? "Session expired" : status === "error" ? "Couldn’t load" : "Loading…"}
+        </Text>
+        {status === "error" || status === "expired" ? (
           <>
             <Text style={s.body}>
               Signed in as {user?.email || "—"}, but the file in Drive couldn’t be read.
             </Text>
             {!!error && <Text style={s.error}>{error}</Text>}
-            <Button label="Try again" onPress={syncNow} primary />
+            <Button label={status === "expired" ? "Reconnect" : "Try again"} onPress={syncNow} primary />
             <Button label="Sign out" onPress={signOut} />
           </>
         ) : (
@@ -150,7 +155,7 @@ export default function App() {
           <Text style={s.userMail}>{user?.email}</Text>
         </View>
         <Pressable onPress={syncNow} hitSlop={8}>
-          <Text style={[s.status, status === "offline" && s.statusWarn, status === "error" && s.statusBad]}>
+          <Text style={[s.status, (status === "offline" || status === "expired") && s.statusWarn, status === "error" && s.statusBad]}>
             {STATUS_TEXT[status] || status}
           </Text>
         </Pressable>
@@ -194,9 +199,16 @@ export default function App() {
       {!!error && <Text style={s.error}>{error}</Text>}
 
       <View style={s.footer}>
+        {!!folderUrl && (
+          <Pressable onPress={() => Linking.openURL(folderUrl)}>
+            <Text style={s.link}>
+              Open {CONFIG.folderPath.join(" / ") || "My Drive"} in Drive
+            </Text>
+          </Pressable>
+        )}
         {!!fileUrl && (
           <Pressable onPress={() => Linking.openURL(fileUrl)}>
-            <Text style={s.link}>Open {CONFIG.fileName} in Drive</Text>
+            <Text style={s.link}>Open {CONFIG.fileName}</Text>
           </Pressable>
         )}
         <Button label="Sign out" onPress={signOut} />

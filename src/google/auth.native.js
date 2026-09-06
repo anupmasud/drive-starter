@@ -81,6 +81,10 @@ export async function getAccessToken({ forceFresh = false } = {}) {
   return fresh.accessToken;
 }
 
+/* The web build needs this to recover from an expired browser token; on native
+   the library refreshes silently, so it is only ever a no-op re-affirmation. */
+export const reconnect = signIn;
+
 export const currentUser = () => {
   const u = GoogleSignin.getCurrentUser();
   return u && u.user ? { email: u.user.email, name: u.user.name, photo: u.user.photo, id: u.user.id } : null;

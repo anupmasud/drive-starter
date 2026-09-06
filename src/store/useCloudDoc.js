@@ -30,6 +30,7 @@ export function useCloudDoc() {
   const [conflict, setConflict] = useState(null);    // { mine, theirs }
 
   const fileId = useRef(null);
+  const folderId = useRef(null);
   const baseTime = useRef(null);     // modifiedTime this device last saw
   const timer = useRef(null);
   const latest = useRef(null);       // newest doc, even mid-render
@@ -58,8 +59,9 @@ export function useCloudDoc() {
     setStatus(cached ? "ready" : "loading");
 
     try {
-      const { id, doc: remote, modifiedTime } = await Drive.loadDoc();
+      const { id, folderId: fid, doc: remote, modifiedTime } = await Drive.loadDoc();
       fileId.current = id;
+      folderId.current = fid;
       baseTime.current = modifiedTime;
       setDoc(remote);
       latest.current = remote;
@@ -70,7 +72,7 @@ export function useCloudDoc() {
       // With a cached copy in hand this is a soft failure: keep working
       // offline and let the next save try again.
       setError(e.message);
-      setStatus(cached ? "offline" : "error");
+      setStatus(e.needsSignIn ? "expired" : cached ? "offline" : "error");
     }
   }, [cache, readCache]);
 
@@ -112,7 +114,7 @@ export function useCloudDoc() {
         return;
       }
       setError(e.message);
-      setStatus("offline");
+      setStatus(e.needsSignIn ? "expired" : "offline");
     }
   }, [user]);
 
@@ -131,6 +133,14 @@ export function useCloudDoc() {
   const syncNow = useCallback(async () => {
     if (!user) return;
     clearTimeout(timer.current);
+    // An expired browser token can only be renewed from a real click, and this
+    // is one — so reconnecting is the right thing to do rather than retrying.
+    if (status === "expired") {
+      try {
+        const { cancelled } = await Auth.reconnect();
+        if (cancelled) return;
+      } catch (e) { setError(e.message); return; }
+    }
     if (status === "offline" && latest.current) await push();
     else await load(user);
   }, [load, push, status, user]);
@@ -141,7 +151,7 @@ export function useCloudDoc() {
       setDoc(conflict.theirs);
       latest.current = conflict.theirs;
       if (user) await cache(user.email, conflict.theirs);
-      const meta = await Drive.findFile();
+      const meta = folderId.current ? await Drive.findFile(folderId.current) : null;
       baseTime.current = meta ? meta.modifiedTime : null;
       setConflict(null);
       setStatus("ready");
@@ -182,6 +192,7 @@ export function useCloudDoc() {
     setDoc(null);
     latest.current = null;
     fileId.current = null;
+    folderId.current = null;
     baseTime.current = null;
     setConflict(null);
     setStatus("signed-out");
@@ -205,6 +216,7 @@ export function useCloudDoc() {
     update, syncNow, resolveConflict,
     signIn, signOut, disconnect,
     fileUrl: fileId.current ? Drive.fileUrl(fileId.current) : null,
+    folderUrl: folderId.current ? Drive.folderUrl(folderId.current) : null,
     configured: !!(CONFIG.iosClientId || CONFIG.webClientId),
   };
 }
