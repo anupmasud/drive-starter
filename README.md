@@ -1,10 +1,12 @@
 # Drive Starter
 
-A starting point for mobile apps where **each person's data lives in their own
-Google Drive**, and signing in with Google is the whole of the access control.
+**Web demo: [anupmasud.github.io/drive-starter](https://anupmasud.github.io/drive-starter/)**
 
-Expo + React Native. No backend, no database, no server of yours holding anyone's
-data — which is the point.
+A starting point for apps where **each person's data lives in their own Google
+Drive**, and signing in with Google is the whole of the access control.
+
+One Expo codebase, two outputs: an **iPhone app** and a **web app**. No backend,
+no database, no server of yours holding anyone's data — which is the point.
 
 ## Why this shape
 
@@ -69,6 +71,19 @@ In the [console](https://console.cloud.google.com/):
    the fingerprint of the keystore your build actually uses. A debug build and a
    release build have different ones, and both need registering.
 
+### 1b. Authorised origins (web only)
+
+For the web build, the **Web application** client also needs every origin it will
+be served from, under **Authorised JavaScript origins** — origins only, no paths:
+
+```
+https://anupmasud.github.io
+http://localhost:8081
+```
+
+Get this wrong and sign-in fails with `origin_mismatch`. The iOS app does not use
+origins at all; it is matched by bundle ID.
+
 ### 2. This project
 
 Fill in `src/config.js`:
@@ -106,12 +121,17 @@ After the first native build, day-to-day work is just `npx expo start --dev-clie
 ## How it fits together
 
 ```
-App.js                    demo screen — replace with your app
-src/config.js             client IDs, scope, file name, empty document
-src/google/auth.js        sign in / out / revoke, access tokens
-src/google/drive.js       find, create, read and write the JSON file
-src/store/useCloudDoc.js  the hook that ties it together
+App.js                     demo screen — replace with your app
+src/config.js              client IDs, scope, folder path, file name, empty doc
+src/google/auth.native.js  sign-in on iOS and Android
+src/google/auth.web.js     sign-in in a browser
+src/google/drive.js        folders and files — shared by both platforms
+src/store/useCloudDoc.js   the hook that ties it together
 ```
+
+Metro picks `auth.native.js` or `auth.web.js` by platform, so nothing above them
+knows which it is on and `drive.js` is shared verbatim. The two differ because
+the native Google library cannot run in a browser.
 
 Everything you'd actually reuse is the three files under `src/`. `App.js` is a
 demo and is meant to be deleted.
@@ -149,6 +169,34 @@ Change `CONFIG.emptyDoc()`, and put a `version` in the document. When you need t
 migrate, read `doc.version` on load and upgrade in place — the file is plain JSON
 and people may have hand-edited it, so be forgiving about what you accept.
 
+## Where the data goes
+
+`CONFIG.folderPath` — default `["Apps", "Drive Starter"]` — puts the file in
+My Drive → Apps → Drive Starter rather than loose in the root. Set it to `[]` to
+keep it at the top level.
+
+**The app creates these folders.** Because of the `drive.file` scope it cannot
+see folders it did not make, so it cannot offer you a picker of folders you
+already have. Once created you can rename the folder or drag it anywhere in your
+Drive and nothing breaks — it is remembered by id, not by path. Deleting it is
+the only thing that invalidates that, and the app recreates it.
+
+## Deploying the web build
+
+```bash
+npm run deploy:web
+```
+
+Builds and force-pushes `dist/` to the `gh-pages` branch. The commit is built
+from inside `dist/`, so the branch can only ever contain what was exported —
+the `gh-pages` npm package seeds a new branch from your current one, which
+quietly drags repo-root files onto a branch serving a public site.
+
+`scripts/postexport.mjs` does the two things GitHub Pages needs: writes
+`.nojekyll` (without it Pages hides the `_expo/` folder, and you get a blank
+page with a 404 for the bundle) and rewrites asset paths to the project
+subdirectory. Change `BASE` there if you rename the repo.
+
 ## Notes
 
 - **Node**: Expo wants ≥ 20.19.4. This was built and bundled on 20.16.0 with only
@@ -156,6 +204,8 @@ and people may have hand-edited it, so be forgiving about what you accept.
 - **Verified so far**: the project bundles cleanly (`npx expo export`). The live
   Google sign-in round trip can't be exercised without real client IDs and a
   device, so treat the first run as the real test.
-- **Web**: not wired up. `@react-native-google-signin` has a web path but it's a
-  different flow; if you want web too, a PWA using the browser OAuth flow is a
-  simpler shape than sharing this code.
+- **Web sessions expire after about an hour.** Browser OAuth has no refresh
+  token by design — one sitting in `localStorage` would be a liability — and a
+  popup that no click asked for is blocked. So an expired web session shows a
+  **Reconnect** button rather than failing silently. The iOS app refreshes on
+  its own and never shows this.
