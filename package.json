@@ -18,7 +18,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "build:web": "expo export --platform web && node scripts/postexport.mjs"
+    "build:web": "expo export --platform web && node scripts/postexport.mjs",
+    "deploy:web": "npm run build:web && bash scripts/deploy-web.sh"
   },
   "private": true
 }
